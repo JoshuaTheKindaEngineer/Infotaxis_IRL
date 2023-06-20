@@ -1,12 +1,14 @@
 import threading
+import pymap3d as pm
 
 class AgentTelemetry:
-    def __init__(self):
+    def __init__(self, reference_point):
         self._sensor_reading = 0
         self._geodetic_position = (0, 0, 0)
-        self._relative_position = (0, 0, 0)
+        self.reference_point = reference_point
+        self._relative_position = (0, 0, 0) # NED
         self._sensor_reading_lock = threading.Lock()
-        self._geodetic_position_lock = threading.Lock()
+        self._position_lock = threading.Lock()
     
     def get_sensor_reading(self):
         return self._sensor_reading
@@ -22,8 +24,17 @@ class AgentTelemetry:
             self._sensor_reading = sensor_reading
     
     def set_geodetic_position(self, geodetic_position):
-        with self._geodetic_position_lock:
+        with self._position_lock:
             self._geodetic_position = geodetic_position
+            self.set_relative_position(geodetic_position)
+            
         
-    def set_relative_position(self, relative_position):
-        self._relative_position = relative_position
+    def set_relative_position(self, geodetic_position):
+        self._relative_position = pm.geodetic2ned(
+                geodetic_position.latitude_deg,
+                geodetic_position.longitude_deg,
+                geodetic_position.absolute_altitude_m,
+                self.reference_point,
+                self.reference_point,
+                self.reference_point,
+            )
