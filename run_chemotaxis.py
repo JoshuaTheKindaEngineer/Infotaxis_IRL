@@ -8,7 +8,7 @@ import time
 import pymap3d as pm
 import threading
 
-Mode = 0
+# Mode = 0
 
 
 def run():
@@ -21,7 +21,10 @@ def run():
     csv_logger = CSVLogger()
     csv_thread = threading.Thread(
         target=csv_logger.write_log,
-        args=(csv_log_queue, "chemotaxis_experiment_1"),
+        args=(
+            csv_log_queue,
+            "chemotaxis_experiment_1",
+        ),
         daemon=True,
     )
     csv_thread.start()
@@ -39,15 +42,15 @@ def run():
         #     agent_telemetry.reference_point[1],
         #     agent_telemetry.reference_point[2],
         # )
-        print("new position: ", new_north, new_east, new_down)
-
+        # print("new position: ", new_north, new_east, new_down)
+        relative_position = agent_telemetry.get_relative_position()
         csv_log_queue.put(
             (
                 time.time() - experiment_start_time,
                 agent_telemetry.get_sensor_reading(),
-                agent_telemetry.get_relative_position()[0],
-                agent_telemetry.get_relative_position()[1],
-                agent_telemetry.get_relative_position()[2],
+                relative_position[0],
+                relative_position[1],
+                relative_position[2],
                 new_north,
                 new_east,
                 new_down,

@@ -28,15 +28,15 @@ class CSVLogger:
                     "desired_down_m",
                 )
             )
-            print("writing to file")
             while self.running:
                 if queue.empty():
                     continue
                 csv_line = queue.get()
+                print("writing to file")
                 writer.writerow(csv_line)
             self.f.close()
 
     def stop(self):
-        self.running = False
-        # if hasattr(self, "f"):
-        #     self.f.close()
+        # self.running = False
+        if hasattr(self, "f"):
+            self.f.close()

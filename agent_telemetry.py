@@ -34,7 +34,7 @@ class AgentTelemetry:
             geodetic_position[0],
             geodetic_position[1],
             geodetic_position[2],
-            self.reference_point,
-            self.reference_point,
-            self.reference_point,
+            self.reference_point[0],
+            self.reference_point[1],
+            self.reference_point[2],
         )

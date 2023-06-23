@@ -3,6 +3,7 @@ from pymavlink import mavutil
 import threading
 import time
 from agent_telemetry import AgentTelemetry
+import sys
 
 
 class TelemetryManager:
@@ -11,31 +12,55 @@ class TelemetryManager:
         self.agent = agent
         self.run()
 
-    def get_sensor_reading(self, connection):
-        while True:
-            sensor_reading_msg = connection.recv_match(
-                type="NAMED_VALUE_FLOAT", blocking=True
-            )
-            self.agent.set_sensor_reading(sensor_reading_msg.value)
+    # def get_sensor_reading(self, connection):
+    #     while True:
+    #         sensor_reading_msg = connection.recv_match(
+    #             type="NAMED_VALUE_FLOAT", blocking=True
+    #         )
+    #         print(sensor_reading_msg.value)
+    #         self.agent.set_sensor_reading(sensor_reading_msg.value)
 
-    def get_geodetic_position(self, connection):
+    # def get_geodetic_position(self, connection):
+    #     while True:
+    #         geodetic_position_msg = connection.recv_match(
+    #             type="GLOBAL_POSITION_INT", blocking=True
+    #         )
+    #         self.agent.set_geodetic_position(
+    #             (
+    #                 geodetic_position_msg.lat,
+    #                 geodetic_position_msg.lon,
+    #                 geodetic_position_msg.alt,
+    #             )
+    #         )
+
+    def handle_message(self, connection):
         while True:
-            geodetic_position_msg = connection.recv_match(
-                type="GLOBAL_POSITION_INT", blocking=True
-            )
-            self.agent.set_geodetic_position(
-                (
-                    geodetic_position_msg.lat,
-                    geodetic_position_msg.lon,
-                    geodetic_position_msg.alt,
+            msg = connection.recv_match(blocking=True)
+            if not msg:
+                return
+            if msg.get_type() == "BAD_DATA":
+                if mavutil.all_printable(msg.data):
+                    sys.stdout.write(msg.data)
+                    sys.stdout.flush()
+            if msg.get_type() == "NAMED_VALUE_FLOAT":
+                print("CO ppb:", msg.value)
+                self.agent.set_sensor_reading(msg.value)
+            elif msg.get_type() == "GLOBAL_POSITION_INT":
+                self.agent.set_geodetic_position(
+                    [
+                        msg.lat,
+                        msg.lon,
+                        msg.alt,
+                    ]
                 )
-            )
+            else:
+                continue
 
-    def print_loop(self):
-        while True:
-            print("CO reading: ", self.agent.get_sensor_reading())
-            print("Geodetic position: ", self.agent.get_geodetic_position())
-            time.sleep(1)
+    # def print_loop(self):
+    #     while True:
+    #         print("CO reading: ", self.agent.get_sensor_reading())
+    #         print("Geodetic position: ", self.agent.get_geodetic_position())
+    #         time.sleep(1)
 
     def run(self):
         # system_address = "/dev/ttyACM0" #direct USB to pixhawk
@@ -59,18 +84,24 @@ class TelemetryManager:
         )
 
         # Spawn threads to read sensor readings and geodetic position
-        sensor_reading_thread = threading.Thread(
-            target=self.get_sensor_reading,
-            args=(connection,),
-        )
-        sensor_reading_thread.start()
+        # sensor_reading_thread = threading.Thread(
+        #     target=self.get_sensor_reading,
+        #     args=(connection,),
+        # )
+        # sensor_reading_thread.start()
 
-        geodetic_position_thread = threading.Thread(
-            target=self.get_geodetic_position,
+        # geodetic_position_thread = threading.Thread(
+        #     target=self.get_geodetic_position,
+        #     args=(connection,),
+        # )
+        # geodetic_position_thread.start()
+
+        msg_handler_thread = threading.Thread(
+            target=self.handle_message,
             args=(connection,),
         )
-        geodetic_position_thread.start()
+        msg_handler_thread.start()
 
         # Spawn thread to print sensor readings and geodetic position
-        print_thread = threading.Thread(target=self.print_loop, args=())
-        print_thread.start()
+        # print_thread = threading.Thread(target=self.print_loop, args=())
+        # print_thread.start()
