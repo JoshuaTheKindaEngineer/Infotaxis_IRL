@@ -7,7 +7,7 @@ import queue
 import time
 import pymap3d as pm
 import threading
-
+import scipy.signal as signal
 # Mode = 0
 
 
@@ -31,7 +31,14 @@ def run():
 
     experiment_start_time = time.time()
     while True:
-
+        measurement_list = []
+        gradient = 10
+        for t in range(100) and gradient<1:
+            new_sensor_reading = agent_telemetry.get_sensor_reading()
+            measurement_list.append(new_sensor_reading)
+            time.sleep(0.1)
+        smoothed_measurement_list = signal.savgol_filter(measurement_list, 99, 3)
+        plateu_value = signal.find_peaks(smoothed_measurement_list, height=0.1, plateu_size=10)
         new_north, new_east, new_down = chemotaxis.update(
             agent_telemetry.get_sensor_reading(), agent_telemetry._relative_position
         )
