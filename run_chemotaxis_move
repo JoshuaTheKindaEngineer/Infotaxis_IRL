@@ -31,11 +31,10 @@ def run():
 
     experiment_start_time = time.time()
     while True:
-        
+
         new_north, new_east, new_down = chemotaxis.update(
             agent_telemetry.get_sensor_reading(), agent_telemetry._relative_position
         )
-        wp_reached = False
         # new_geodetic_position = pm.ned2geodetic(
         #     new_East,
         #     new_North,
@@ -45,8 +44,6 @@ def run():
         #     agent_telemetry.reference_point[2],
         # )
         # print("new position: ", new_north, new_east, new_down)
-        while wp_reached:
-            wp_reached = TelemetryManager.set_position(new_north, new_east, new_down)
         relative_position = agent_telemetry.get_relative_position()
         csv_log_queue.put(
             (
@@ -60,11 +57,14 @@ def run():
                 new_down,
             )
         )
+        wp_reached = False
+        while wp_reached:
+            wp_reached = TelemetryManager.set_position(new_north, new_east, new_down)
         # TODO send new geodetic position to pixhawk
         # block until aircraft reaches new position
-        time.sleep(
-            1
-        )  # waiting time for sensor to settle, could be replaced by logic to see if it is changing much
+        #time.sleep(
+            #1
+        #)  # waiting time for sensor to settle, could be replaced by logic to see if it is changing much
 
 
 if __name__ == "__main__":
