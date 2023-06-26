@@ -7,7 +7,6 @@ import queue
 import time
 import pymap3d as pm
 import threading
-
 # Mode = 0
 
 
