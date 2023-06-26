@@ -106,7 +106,8 @@ class TelemetryManager:
         # Spawn thread to print sensor readings and geodetic position
         # print_thread = threading.Thread(target=self.print_loop, args=())
         # print_thread.start()
-    def set_position(self,new_north,new_east,new_down,type_mask=0b110111111000):
+    def set_position(self,new_north,new_east,new_down):
+        type_mask=0b110111111000 #type mask for position only
         connection = mavutil.mavlink_connection(self.system_address, 57600)
         waypoint_reached = False
         connection.mav.send(mavutil.mavlink.MAVLink_set_position_target_ned_message(10,connection.target_system,connection.target_component,mavutil.mavlink.MAV_FRAME_LOCAL_NED,type_mask,new_north, new_east, new_down, 0, 0, 0, 0, 0, 0, 0, 0))
