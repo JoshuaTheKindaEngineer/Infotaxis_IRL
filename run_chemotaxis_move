@@ -38,9 +38,9 @@ def run():
             measurement_list.append(new_sensor_reading)
             time.sleep(0.1)
         smoothed_measurement_list = signal.savgol_filter(measurement_list, 99, 3)
-        plateu_value = signal.find_peaks(smoothed_measurement_list, height=0.1, plateu_size=10)
+        plateau_value = signal.find_peaks(smoothed_measurement_list, height=0.1, plateu_size=10)
         new_north, new_east, new_down = chemotaxis.update(
-            agent_telemetry.get_sensor_reading(), agent_telemetry._relative_position
+            plateau_value, agent_telemetry._relative_position
         )
         # new_geodetic_position = pm.ned2geodetic(
         #     new_East,
